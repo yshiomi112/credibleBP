@@ -1,0 +1,180 @@
+{% extends "global/Page.html" %}
+{% block title %}{% endblock %}
+
+{% block content %}
+
+<style>
+/* 共通ボックススタイル */
+.box-wrapper {
+  background-color: #fdfdfd;
+  border: 1px solid #888;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.box-wrapper.light {
+  border-color: #ddd;  /* 非アクティブな枠は薄いグレーに */
+}
+
+/* タイマー表示 */
+#countdown-timer-box {
+  background-color: #fff4cc;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+  margin: 20px 0;
+}
+#timeout-warning {
+  display: none;
+  background: #ffe0e0;
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin: 20px 0;
+  font-weight: bold;
+  text-align: center;
+  color: #800000;
+}
+
+/* 表のスタイル */
+.payoff-table {
+  border-collapse: collapse;
+  font-size: 1em;
+  margin-bottom: 24px;
+}
+.payoff-table th,
+.payoff-table td {
+  border: 1px solid #ccc;
+  padding: 10px 14px;
+  text-align: center;
+}
+.payoff-table .no-top-border { border-top: none !important; }
+.payoff-table .no-bottom-border { border-bottom: none !important; }
+.payoff-table .no-right-border { border-right: none !important; }
+.payoff-table .no-left-border { border-left: none !important; }
+.payoff-table .header { font-weight: bold; }
+.payoff-table .red-header { background: #ffe6e6 !important; }
+.payoff-table .blue-header { background: #e6f0ff !important; }
+.payoff-table .row-red-label,
+.payoff-table .row-red-blank { background: #ffe6e6 !important; }
+.payoff-table .row-blue-label,
+.payoff-table .row-blue-blank { background: #e6f0ff !important; }
+.payoff-table .left-cell {
+  text-align: left;
+  font-weight: bold;
+}
+</style>
+
+<div id="countdown-timer-box">
+  ⌛️ このページでの残り時間 <strong id="time-left">1:00</strong>
+</div>
+
+<div id="timeout-warning">
+  ⏰ 時間が経過しました。なるべく早く選択してください。
+</div>
+
+<div class="box-wrapper">
+  <table class="payoff-table" style="margin: 0 auto;">
+
+    <tr class="header">
+      <th></th>
+      <th colspan="2" class="red-header">
+        受信者が「<span style="color:#cc0000;">赤色</span>」を推測
+      </th>
+      <th colspan="2" class="blue-header">
+        受信者が「<span style="color:#0044cc;">青色</span>」を推測
+      </th>
+    </tr>
+
+    <!-- 赤玉 -->
+    <tr>
+      <th class="left-cell row-red-label no-bottom-border">
+        引かれた玉が「<span style="color:#cc0000;">赤玉</span>」
+      </th>
+      <td class="no-bottom-border no-right-border">送信者</td>
+      <td class="no-bottom-border no-left-border">受信者</td>
+      <td class="no-bottom-border no-right-border">送信者</td>
+      <td class="no-bottom-border no-left-border">受信者</td>
+    </tr>
+    <tr>
+      <td class="row-red-blank no-top-border"></td>
+      <!-- 送信者ポイント（赤玉 × 赤推測） -->
+      <td class="no-top-border no-right-border">
+      {% if treatment == 'NP' %}100 pt{% else %}200 pt{% endif %}
+      </td>
+      <td class="no-top-border no-left-border">150 pt</td>
+      <td class="no-top-border no-right-border">80 pt</td>
+      <td class="no-top-border no-left-border">80 pt</td>
+    </tr>
+
+    <!-- 青玉 -->
+    <tr>
+      <th class="left-cell row-blue-label no-bottom-border">
+        引かれた玉が「<span style="color:#0044cc;">青玉</span>」
+      </th>
+      <td class="no-bottom-border no-right-border">送信者</td>
+      <td class="no-bottom-border no-left-border">受信者</td>
+      <td class="no-bottom-border no-right-border">送信者</td>
+      <td class="no-bottom-border no-left-border">受信者</td>
+    </tr>
+    <tr>
+      <td class="row-blue-blank no-top-border"></td>
+      <!-- 送信者ポイント（青玉 × 赤推測） -->
+      <td class="no-top-border no-right-border">
+      {% if treatment == 'NP' %}200 pt{% else %}100 pt{% endif %}
+      </td>
+      <td class="no-top-border no-left-border">80 pt</td>
+      <td class="no-top-border no-right-border">80 pt</td>
+      <td class="no-top-border no-left-border">150 pt</td>
+    </tr>
+  </table>
+
+  <p style="margin-top:26px;">
+    <strong>実験パート&nbsp;1 で行った課題について質問です。</strong><br>
+    ラウンド開始前に、いくらかのポイントを支払うことで<strong>ステージ&nbsp;2 でのメッセージプランの修正</strong> の機会を放棄できるとします。<br>
+    つまりこのとき、ステージ&nbsp;1 で設計したメッセージプランが受信者にそのまま公開され、受信者もそのことを認識しています。
+  </p>
+
+  <p style="margin-top:20px;">
+    あなたはこの機会に<strong>最大何ポイント</strong>を支払いたいですか？<br>
+    なお支払いは、そのラウンドで獲得したポイントから引かれるものと考えてください。<p>
+    0〜200 の整数で回答してください。回答の際には上の表も参考にしてください。
+  </p>
+
+  <form method="post">
+    <div style="display:inline-flex; align-items:center; gap:6px; font-size:1.2em;">
+      {{ form.WTP }}
+      <span style="white-space:nowrap;">ポイント</span>
+    </div>
+  </div>
+    <div style="margin-top:20px;">
+      {{ next_button }}
+    </div>
+  </form>
+
+
+<script>
+// タイマー処理
+let secondsLeft = 60;
+function updateTimeDisplay() {
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+  document.getElementById('time-left').textContent = timeStr;
+}
+updateTimeDisplay();
+const timer = setInterval(() => {
+  secondsLeft -= 1;
+  updateTimeDisplay();
+  if (secondsLeft <= 0) {
+    clearInterval(timer);
+    document.getElementById("timeout-warning").style.display = "block";
+  }
+}, 1000);
+</script>
+
+{% endblock %}
+
+

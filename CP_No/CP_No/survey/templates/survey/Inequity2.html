@@ -1,0 +1,114 @@
+{% extends "global/Page.html" %}
+{% block title %}質問{% if is_sender %}5/6{% else %}4/5{% endif %}{% endblock %}
+
+{% block content %}
+<style>
+/* タイマー表示 */
+#countdown-timer-box {
+  background-color: #fff4cc;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+  margin: 20px 0;
+}
+#timeout-warning {
+  display: none;
+  background: #ffe0e0;       /* ← 現在の赤っぽい背景色を維持 */
+  border-radius: 10px;       /* ← 丸角を追加 */
+  padding: 10px 20px;
+  margin: 20px 0;
+  font-weight: bold;
+  text-align: center;
+  color: #800000;            /* 任意：やや濃い赤字にして強調 */
+}
+.choice-row{display:flex;gap:24px;align-items:center;margin:22px 0;flex-wrap:wrap;}
+.round-badge{width:32px;height:32px;line-height:32px;background:#666;color:#fff;
+             border-radius:50%;text-align:center;font-weight:bold;margin-right:10px;}
+.card-choice{flex:1 1 260px;border:2px solid #aaa;border-radius:10px;padding:18px 16px;
+             cursor:pointer;transition:.15s;box-shadow:0 2px 5px rgba(0,0,0,.06);}
+.card-choice:hover{box-shadow:0 4px 10px rgba(0,0,0,.15);}
+input[type=radio]{display:none;}
+/* 左＝equal を選択 → 赤 */
+input[value=equal]:checked   + .card-choice{border-color:#cc4444;background:#ffecec;}
+/* 右＝unequal を選択 → 青 */
+input[value=unequal]:checked + .card-choice{border-color:#1a66e0;background:#e4efff;}
+</style>
+
+
+<div id="countdown-timer-box">
+  ⌛️ このページでの残り時間 <strong id="time-left">1:00</strong>
+</div>
+
+<div id="timeout-warning">
+  ⏰ 時間が経過しました。なるべく早く選択してください。
+</div>
+
+<p>あなたが、あなたとあなたのペアの相手との報酬の分配額を決定する状況を考えてください。<p>
+<p>  次の５組の分配案それぞれについて、右と左のどちらの分配額が望ましいと思うかを選択してください。</p>
+
+<form method="post" id="ineq2-form">
+  {% for idx,left,right in pairs %}
+    <div class="choice-row">
+      <span class="round-badge">{{ idx }}</span>
+
+      <!-- 左＝平等案 -->
+      <label>
+        <input type="radio" name="ineq2_q{{ idx }}" value="equal" required
+               onchange="updateSwitch2({{ idx }},'left')">
+        <div class="card-choice">{{ left }}</div>
+      </label>
+
+      <span style="font-weight:bold;">or</span>
+
+      <!-- 右＝不平等案 -->
+      <label>
+        <input type="radio" name="ineq2_q{{ idx }}" value="unequal" required
+               onchange="updateSwitch2({{ idx }},'right')">
+        <div class="card-choice">{{ right }}</div>
+      </label>
+    </div>
+  {% endfor %}
+
+  {{ next_button }}
+</form>
+
+<script>
+function updateSwitch2(row, side){
+  const total = 5;
+  const radio = (r,v)=>
+    document.querySelector(`input[name=ineq2_q${r}][value=${v}]`);
+  for(let i=1;i<=total;i++){
+    if(side==='left' && i<row){
+      radio(i,'equal').checked   = true;
+      radio(i,'unequal').checked = false;
+    }
+    if(side==='right' && i>row){
+      radio(i,'unequal').checked = true;
+      radio(i,'equal').checked   = false;
+    }
+  }
+}
+
+// タイマー処理
+let secondsLeft = 60;
+function updateTimeDisplay() {
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+  document.getElementById('time-left').textContent = timeStr;
+}
+updateTimeDisplay();
+const timer = setInterval(() => {
+  secondsLeft -= 1;
+  updateTimeDisplay();
+  if (secondsLeft <= 0) {
+    clearInterval(timer);
+    document.getElementById("timeout-warning").style.display = "block";
+  }
+}, 1000);
+</script>
+{% endblock %}
+

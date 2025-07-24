@@ -1,0 +1,62 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}確認クイズ 4/4{% endblock %}
+
+{% block content %}
+<style>
+/* ───────────────────────────────────────────
+   カード風デザイン（選択済み→緑ハイライト）
+   ─────────────────────────────────────────── */
+.choice-container{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+  margin:30px 0;
+}
+label.card-wrapper{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  cursor:pointer;
+  flex-wrap:wrap;
+}
+input[type=checkbox]{display:none;}      /* チェックボックス本体は隠す */
+
+.card-choice{
+  flex:1 1 260px;
+  border:2px solid #aaa;
+  border-radius:10px;
+  padding:16px 18px;
+  box-shadow:0 2px 5px rgba(0,0,0,.06);
+  transition:.15s ease;
+}
+label.card-wrapper:hover .card-choice{
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+}
+
+/* ★ 選択されたカード→緑系に変化 ★ */
+input[type=checkbox]:checked + .card-choice{
+  border-color:#28a745;         /* 緑フレーム */
+  background:#e6f8e6;           /* 淡い緑背景 */
+}
+</style>
+
+<p>
+  以下の３つの選択肢のうち、<strong>正しいものを全て</strong>選んでください。
+</p>
+
+<form method="post">
+  <div class="choice-container">
+    {% for field in form %}
+      <label class="card-wrapper">
+        {{ field }}
+        <div class="card-choice">{{ field.label }}</div>
+      </label>
+    {% endfor %}
+  </div>
+
+  <button class="btn btn-primary">次へ</button>
+</form>
+{% endblock %}
+

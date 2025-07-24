@@ -1,0 +1,297 @@
+{% extends "global/Page.html" %}
+{% block title %}修正後のメッセージプランの推測（{{ round_label }}）{% endblock %}
+{% block content %}
+
+<!-- ───────── ❶  スタイル（SenderRevision と同一） ───────── -->
+<style>
+/* レイアウト */
+.slider-container{display:flex;justify-content:space-between;gap:40px;margin-bottom:30px;}
+.slider-box{flex:1;position:relative;}
+/* スライダー本体 */
+.color-slider{
+  -webkit-appearance:none;width:100%;height:20px;border-radius:10px;
+  background:#ddd;outline:none;margin-top:10px;
+}
+.color-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:36px;height:36px;border-radius:50%;
+  background:white;border:2px solid gray;cursor:pointer;margin-top:-8px;
+}
+/* thumb 無し（読み取り専用バー） */
+.no-thumb::-webkit-slider-thumb{display:none;}
+.no-thumb{pointer-events:none;}
+/* ▲マーカー */
+.marker{
+  position:absolute;top:27px;
+  width:0;height:0;
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-top:10px solid black;
+  pointer-events:none;opacity:.7;
+}
+/* ラベル */
+.prob-value{
+  display:inline-block;padding:4px 8px;font-size:1.5em;font-weight:bold;
+  border:2px solid #ccc;border-radius:6px;margin:0 4px;
+}
+.message-line{margin-bottom:10px;line-height:1.8;}
+
+/* タイマー表示 */
+#countdown-timer-box {
+  background-color: #fff4cc;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+  margin: 20px 0;
+}
+#timeout-warning {
+  display: none;
+  background: #ffe0e0;       /* ← 現在の赤っぽい背景色を維持 */
+  border-radius: 10px;       /* ← 丸角を追加 */
+  padding: 10px 20px;
+  margin: 20px 0;
+  font-weight: bold;
+  text-align: center;
+  color: #800000;            /* 任意：やや濃い赤字にして強調 */
+}
+
+.box-wrapper {
+  background-color: #fdfdfd;
+  border: 1px solid #888;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.box-heading {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.marker-inline{
+  display:inline-block;          /* インラインで配置            */
+  width:0; height:0;             /* 三角形を作るときは 0×0  */
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-top:10px solid black;   /* .marker と同じ向き（▼） */
+  opacity:.7;                    /* 同じ半透明感                */
+  vertical-align:middle;         /* 文字との高さをそろえる      */
+  margin:0 2px;                  /* 「」から少し余白             */
+}
+.box-wrapper.light {
+  border-color: #ddd;  /* ← 非アクティブな枠は薄いグレーに */
+}
+
+</style>
+
+<!-- ───────── ❷  本文 ───────── -->
+{% if player.round_number not in [1, 2] %}
+<div id="countdown-timer-box">
+  ⌛️ このページでの残り時間 <strong id="time-left">1:00</strong>
+</div>
+
+<div id="timeout-warning">
+  ⏰ 時間が経過しました。なるべく早く選択してください。
+</div>
+{% endif %}
+
+<p> 下の枠内のスライダーを操作して、修正後のメッセージプランを推測してください。<p>
+<p> 送信者がメッセージプランを修正する際には、全体でのメッセージ送信確率を変更することはできません。<p>
+<p> そのため一方のスライダーを動かすと、他方のスライダーは制約を満たすように自動的に動きます。<p>
+<p> 送信者が公開したメッセージプラン（修正前）は「<span class="marker-inline"></span>」で示されています。<p>
+
+<form method="post">
+
+  <!-- 🔸スライダー部分を囲む -->
+  <div class="box-wrapper">
+    <h3 class="box-heading">メッセージプランの推測</h3>
+
+    <div class="slider-container">
+      <!-- 赤玉 -->
+      <div class="slider-box">
+        <p><strong><span style="color:#ff6666">赤玉</span>が引かれた場合：</strong></p>
+        <input type="range" id="slider_r_R" min="0" max="100" step="1"
+               value="{{ init_r_given_R }}" class="color-slider">
+        <div class="marker" id="marker_r_R"></div>
+        <p class="message-line">
+          <span class="prob-value" id="v_r_R">--</span>％で
+          「<strong style="color:#ff6666">赤色</strong>」メッセージを送信
+        </p>
+        <p class="message-line">
+          <span class="prob-value" id="v_b_R">--</span>％で
+          「<strong style="color:#66ccff">青色</strong>」メッセージを送信
+        </p>
+      </div>
+
+      <!-- 青玉 -->
+      <div class="slider-box">
+        <p><strong><span style="color:#66ccff">青玉</span>が引かれた場合：</strong></p>
+        <input type="range" id="slider_r_B" min="0" max="100" step="1"
+               value="{{ init_r_given_B }}" class="color-slider">
+        <div class="marker" id="marker_r_B"></div>
+        <p class="message-line">
+          <span class="prob-value" id="v_r_B">--</span>％で
+          「<strong style="color:#ff6666">赤色</strong>」メッセージを送信
+        </p>
+        <p class="message-line">
+          <span class="prob-value" id="v_b_B">--</span>％で
+          「<strong style="color:#66ccff">青色</strong>」メッセージを送信
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔸周辺確率バーを囲む -->
+  <div class="box-wrapper light">
+    <h3 class="box-heading">全体でのメッセージ送信確率（固定）</h3>
+
+    <input type="range" id="slider_marginal" min="0" max="100" step="1"
+           value="{{ marginal_r_initial }}" class="color-slider no-thumb" disabled>
+
+    <div style="display:flex;justify-content:space-between;">
+      <span>「<strong style="color:#ff6666">赤色</strong>」メッセージが送信される確率は
+        <span class="prob-value" id="lab_r">{{ marginal_r_initial }}</span>％</span>
+      <span>「<strong style="color:#66ccff">青色</strong>」メッセージが送信される確率は
+        <span class="prob-value" id="lab_b">{{ marginal_b_initial }}</span>％</span>
+    </div>
+  </div>
+  <!-- hidden fields -->
+  <input type="hidden" name="hat_pi_r_given_R" id="h_r_R">
+  <input type="hidden" name="hat_pi_r_given_B" id="h_r_B">
+
+
+　<p>推測が完了したら「次へ」ボタンを押してください。</p>
+
+  <button class="btn btn-primary">次へ</button>
+</form>
+
+
+<!-- ───────── ❸  スクリプト ───────── -->
+<script>
+/* ==== 定数 ==== */
+const PR   = {{ PRIOR_R }};
+const PB   = {{ PRIOR_B }};
+const pFix = {{ marginal_r_initial }} / 100;  // 固定周辺確率 P(r)
+
+/* 許容区間（%） */
+const rR_min = {{ rR_min }}, rR_max = {{ rR_max }};
+const rB_min = {{ rB_min }}, rB_max = {{ rB_max }};
+
+/* カラー定義 */
+const dullRed  = '#f4caca', dullBlue  = '#c9ddf7';
+const vividRed = '#ff6666', vividBlue = '#66ccff';
+
+/* ==== DOM ==== */
+const sR  = document.getElementById('slider_r_R');
+const sB  = document.getElementById('slider_r_B');
+const sM  = document.getElementById('slider_marginal');
+const mR  = document.getElementById('marker_r_R');
+const mB  = document.getElementById('marker_r_B');
+const v_r_R = document.getElementById('v_r_R');
+const v_b_R = document.getElementById('v_b_R');
+const v_r_B = document.getElementById('v_r_B');
+const v_b_B = document.getElementById('v_b_B');
+const h_r_R = document.getElementById('h_r_R');
+const h_r_B = document.getElementById('h_r_B');
+
+/* ==== ヘルパー ==== */
+const clamp = (x,min,max)=>Math.min(Math.max(x,min),max);
+const mark  = (el,pct)=>{el.style.left=`calc(${pct}% - 7px)`;};
+function paint(sl,val,min,max){
+  val=parseFloat(val);
+  min=parseFloat(min);
+  max=parseFloat(max);
+  sl.style.background =
+    `linear-gradient(to right,
+       ${dullRed} 0%, ${dullRed} ${min}%,
+       ${vividRed} ${min}%, ${vividRed} ${val}%,
+       ${vividBlue} ${val}%, ${vividBlue} ${max}%,
+       ${dullBlue} ${max}%, ${dullBlue} 100%)`;
+}
+function paintMarginal(val){
+  sM.style.background =
+    `linear-gradient(to right, ${vividRed} 0%, ${vividRed} ${val}%,
+                                  ${vividBlue} ${val}%, ${vividBlue} 100%)`;
+}
+
+/* ==== 双方向同期ロジック ==== */
+let lock=false;
+function sync(origin){
+  if(lock) return;
+  lock = true;
+
+  let rR = sR.value/100,
+      rB = sB.value/100;
+
+  // 周辺確率固定式で相手スライダーを更新
+  if(origin==='R'){
+    rB = (pFix - PR*rR)/PB;
+  }else{
+    rR = (pFix - PB*rB)/PR;
+  }
+
+  /* 許容区間クランプ & 再計算 */
+  rR = clamp(rR, rR_min/100, rR_max/100);
+  rB = (pFix - PR*rR)/PB;
+  rB = clamp(rB, rB_min/100, rB_max/100);
+  rR = (pFix - PB*rB)/PR;
+
+  /* 0–100% へ変換 */
+  const pRr = Math.round(rR*100);
+  const pBr = Math.round(rB*100);
+
+  /* 描画更新 */
+  sR.value = pRr; sB.value = pBr;
+  paint(sR, pRr, rR_min, rR_max);
+  paint(sB, pBr, rB_min, rB_max);
+  v_r_R.textContent = pRr; v_b_R.textContent = 100 - pRr;
+  v_r_B.textContent = pBr; v_b_B.textContent = 100 - pBr;
+  h_r_R.value = rR.toFixed(4);
+  h_r_B.value = rB.toFixed(4);
+
+  lock=false;
+}
+
+/* ==== 初期化 ==== */
+document.addEventListener('DOMContentLoaded',()=>{
+  /* ▲ マーカー（送信者の初期プラン） */
+  mark(mR, {{ init_r_given_R }});
+  mark(mB, {{ init_r_given_B }});
+  /* スライダー背景 */
+  paint(sR, sR.value, rR_min, rR_max);
+  paint(sB, sB.value, rB_min, rB_max);
+  paintMarginal({{ marginal_r_initial }});
+  /* ラベル・hidden 初期値 */
+  v_r_R.textContent = {{ init_r_given_R }};
+  v_b_R.textContent = 100 - {{ init_r_given_R }};
+  v_r_B.textContent = {{ init_r_given_B }};
+  v_b_B.textContent = 100 - {{ init_r_given_B }};
+  h_r_R.value = ({{ init_r_given_R }}/100).toFixed(4);
+  h_r_B.value = ({{ init_r_given_B }}/100).toFixed(4);
+});
+
+/* イベント登録 */
+sR.addEventListener('input',()=>sync('R'));
+sB.addEventListener('input',()=>sync('B'));
+
+
+// タイマー処理
+let secondsLeft = 90;
+function updateTimeDisplay() {
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+  document.getElementById('time-left').textContent = timeStr;
+}
+updateTimeDisplay();
+const timer = setInterval(() => {
+  secondsLeft -= 1;
+  updateTimeDisplay();
+  if (secondsLeft <= 0) {
+    clearInterval(timer);
+    document.getElementById("timeout-warning").style.display = "block";
+  }
+}, 1000);
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}確認クイズ 2/4 – 正解です✅{% endblock %}
+
+{% block content %}
+<style>
+/* ───────────────────────────────────────────
+   カード風デザイン（正→緑、誤→赤）
+   ─────────────────────────────────────────── */
+.explain-container{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+  margin:30px 0;
+}
+
+.ex-card{
+  display:flex;
+  gap:18px;
+  align-items:flex-start;
+  padding:18px 20px;
+  border:2px solid #aaa;
+  border-radius:12px;
+  box-shadow:0 2px 5px rgba(0,0,0,.06);
+}
+
+/* 正解（緑） */
+.ex-card.correct{
+  border-color:#28a745;
+  background:#e6f8e6;
+}
+/* 誤答（赤） */
+.ex-card.wrong{
+  border-color:#cc4444;
+  background:#ffecec;
+}
+
+/* 正誤バッジ */
+.badge{
+  width:48px;
+  height:48px;
+  line-height:48px;
+  border-radius:50%;
+  text-align:center;
+  font-weight:bold;
+  color:#fff;
+  flex-shrink:0;
+}
+.badge.correct{background:#28a745;}
+.badge.wrong{background:#cc4444;}
+
+/* テキスト部分 */
+.card-body{flex:1;}
+.card-body p{margin-bottom:8px;}
+</style>
+
+
+
+<div class="explain-container">
+  {% for o in options %}
+    {% comment %}
+      - 正解カードも誤答カードも表示
+      - 解説文（o.exp）は誤答カードだけ表示
+    {% endcomment %}
+    {% if o.result == '正' %}
+      <div class="ex-card correct">
+        <div class="badge correct">正</div>
+        <div class="card-body">
+          <p class="mb-0"><strong>{{ o.text }}</strong></p>
+          {# 正解なので解説文は出さない #}
+        </div>
+      </div>
+    {% else %}
+      <div class="ex-card wrong">
+        <div class="badge wrong">誤</div>
+        <div class="card-body">
+          <p class="mb-1"><strong>{{ o.text }}</strong></p>
+          <p class="mb-0">{{ o.exp }}</p>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<p class="mt-4">解説を確認したら「次へ」を押してください。</p>
+<button class="btn btn-primary">次へ</button>
+{% endblock %}
+

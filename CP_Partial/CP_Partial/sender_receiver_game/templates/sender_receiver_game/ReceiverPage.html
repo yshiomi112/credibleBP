@@ -1,0 +1,250 @@
+{% extends "global/Page.html" %}
+{% block title %}玉の色の推測（{{ round_label }}）{% endblock %}
+{% block content %}
+<style>
+.slider-container { display:flex; justify-content:space-between; gap:40px; margin-bottom:30px; }
+.slider-box { flex:1; }
+.color-slider {
+  -webkit-appearance:none; width:100%; height:20px; border-radius:10px;
+  background:linear-gradient(to right,#ff6666 50%,#66ccff 50%);
+  outline:none; margin-top:10px;
+}
+.color-slider.disabled::-webkit-slider-thumb { display:none; }
+.prob-value {
+  display:inline-block; padding:4px 8px; font-size:1.5em; font-weight:bold;
+  border:2px solid #ccc; border-radius:6px; margin-right:5px;
+}
+.message-line { margin-bottom:10px; line-height:1.8; }
+.distribution-container {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:40px; margin-top:20px;
+}
+.inline-field { display:inline-block; vertical-align:middle; margin:0 6px; }
+
+#countdown-timer-box {
+  background-color: #fff4cc;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+  margin: 20px 0;
+}
+#timeout-warning {
+  display: none;
+  background: #ffe0e0;
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin: 20px 0;
+  font-weight: bold;
+  text-align: center;
+  color: #800000;
+}
+
+.box-wrapper {
+  background-color: #fdfdfd;
+  border: 1px solid #888;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.box-wrapper.light {
+  border: 1px solid #ccc;   /* ← 非アクティブな枠は薄いグレーに */
+}
+.box-heading {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.inline-choice-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+.choice-button {
+  padding: 10px 20px;
+  border: 2px solid #999;
+  border-radius: 10px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: white;
+  color: #666;
+  transition: all 0.3s ease;
+}
+input[type="radio"] { display: none; }
+input[type="radio"]:checked + .choice-button.red {
+  background-color: #ffdddd;
+  border-color: #ff6666;
+  color: #cc0000;
+}
+input[type="radio"]:checked + .choice-button.blue {
+  background-color: #ddeeff;
+  border-color: #66ccff;
+  color: #0044cc;
+}
+</style>
+
+{# --- 追加／変更 --- #}
+{% if player.round_number not in [1, 2] %}
+<div id="countdown-timer-box">
+  ⌛️ このページでの残り時間 <strong id="time-left">1:00</strong>
+</div>
+
+<div id="timeout-warning">
+  ⏰ 時間が経過しました。なるべく早く選択してください。
+</div>
+{% endif %}
+
+{% if player.round_number in [1, 2] %}
+  <p style="color:red; font-weight:bold;">※これは練習ラウンドです。練習ラウンドの結果は報酬に影響を与えません。</p>
+{% endif %}
+
+<p>下の枠には送信者が公開したメッセージプランと、そこから計算される全体でのメッセージ送信確率が表示されています。<p>
+<p>送信者はこのメッセージプランを部分的に修正できますが、修正後のメッセージプランを観察することはできません。<p>
+<p>一方で、全体でのメッセージ確率は修正前後で共通しています。</p>
+
+
+<!-- 🔸スライダー2本（赤玉・青玉）を囲む -->
+<div class="box-wrapper light">
+  <h3 class="box-heading">送信者が公開したメッセージプラン</h3>
+
+  <div class="slider-container">
+    <!-- 赤玉 -->
+    <div class="slider-box">
+      <p><strong><span style="color:#ff6666">赤玉</span>が引かれた場合：</strong></p>
+      <input type="range" min="0" max="100" id="sliderR" class="color-slider disabled" disabled>
+      <p class="message-line">
+        <span class="prob-value" id="valueR">{{ pi_r_given_R }}</span>％の確率で
+        「<strong style="color:#ff6666">赤色</strong>」メッセージを送信
+      </p>
+      <p class="message-line">
+        <span class="prob-value" id="valueRB">{{ pi_b_given_R }}</span>％の確率で
+        「<strong style="color:#66ccff">青色</strong>」メッセージを送信
+      </p>
+    </div>
+
+    <!-- 青玉 -->
+    <div class="slider-box">
+      <p><strong><span style="color:#66ccff">青玉</span>が引かれた場合：</strong></p>
+      <input type="range" min="0" max="100" id="sliderB" class="color-slider disabled" disabled>
+      <p class="message-line">
+        <span class="prob-value" id="valueB">{{ pi_r_given_B }}</span>％の確率で
+        「<strong style="color:#ff6666">赤色</strong>」のメッセージを送信
+      </p>
+      <p class="message-line">
+        <span class="prob-value" id="valueBB">{{ pi_b_given_B }}</span>％の確率で
+        「<strong style="color:#66ccff">青色</strong>」のメッセージを送信
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<div class="box-wrapper light">
+
+
+  <h3 class="box-heading">全体でのメッセージ送信確率</h3>
+  <input
+    type="range"
+    min="0" max="100"
+    id="sliderTotal"
+    value="{{ marginal_r }}"
+    class="color-slider disabled"
+    disabled>
+  <div class="distribution-container">
+    <p class="message-line">
+      「<strong style="color:#ff6666">赤色</strong>」メッセージが送信される確率は
+      <span class="prob-value" id="valueTotalR">{{ marginal_r }}</span>％
+    </p>
+    <p class="message-line">
+      「<strong style="color:#66ccff">青色</strong>」メッセージが送信される確率は
+      <span class="prob-value" id="valueTotalB">{{ marginal_b }}</span>％
+    </p>
+  </div>
+</div>
+
+<p>送信者が設計したメッセージプランから送信されるメッセージが「<strong style="color:#ff6666">赤色</strong>」の場合と
+  「<strong style="color:#66ccff">青色</strong>」の場合それぞれについて、玉の色を推測してください。</p>
+
+<!-- 🔸行動選択（戦略法） -->
+<div class="box-wrapper">
+  <h3 class="box-heading">玉の色の推測</h3>
+<form method="post">
+  <div class="inline-choice-row">
+    <span>「<strong style="color:#ff6666">赤色</strong>」のメッセージを受信した場合、あなたの推測は</span>
+    <div class="button-group">
+      <input type="radio" name="action_if_r" value="red" id="action_if_r_red" required>
+      <label for="action_if_r_red" class="choice-button red">赤玉</label>
+
+      <input type="radio" name="action_if_r" value="blue" id="action_if_r_blue">
+      <label for="action_if_r_blue" class="choice-button blue">青玉</label>
+    </div>
+  </div>
+
+
+
+  <div class="inline-choice-row">
+    <span>「<strong style="color:#66ccff">青色</strong>」のメッセージを受信した場合、あなたの推測は</span>
+    <div class="button-group">
+      <input type="radio" name="action_if_b" value="red" id="action_if_b_red" required>
+      <label for="action_if_b_red" class="choice-button red">赤玉</label>
+
+      <input type="radio" name="action_if_b" value="blue" id="action_if_b_blue">
+      <label for="action_if_b_blue" class="choice-button blue">青玉</label>
+    </div>
+  </div>
+</div>
+
+
+ <p>推測が完了したら「次へ」ボタンを押してください。</p>
+
+  <button class="btn btn-primary">次へ</button>
+</form>
+
+
+
+
+
+
+
+<script>
+function paint(slider,val){
+  slider.value=val;
+  slider.style.background=`linear-gradient(to right,#ff6666 ${val}%,#66ccff ${val}%)`;
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  paint(document.getElementById('sliderR'),{{ pi_r_given_R }});
+  paint(document.getElementById('sliderB'),{{ pi_r_given_B }});
+  paint(document.getElementById('sliderTotal'),{{ marginal_r }});
+});
+
+
+  // タイマー処理
+let secondsLeft = 90;
+function updateTimeDisplay() {
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+  document.getElementById('time-left').textContent = timeStr;
+}
+updateTimeDisplay();
+const timer = setInterval(() => {
+  secondsLeft -= 1;
+  updateTimeDisplay();
+  if (secondsLeft <= 0) {
+    clearInterval(timer);
+    document.getElementById("timeout-warning").style.display = "block";
+  }
+}, 1000);
+
+</script>
+{% endblock %}
