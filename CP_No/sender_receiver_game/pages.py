@@ -154,10 +154,14 @@ class ResultsPage(Page):
     def get_form_fields(self):
         return [] if not show_next_button(self.round_number) else None
 
+
+class WaitRound(WaitPage):
+    wait_for_all_groups = True
+
 # ────────── ページ遷移順 ──────────
 page_sequence = [
     RolePractice, RoleMain, RoleIntroWait,
     SenderPage, WaitSender,
     ReceiverPage, ReceiverPredict,
-    WaitResults, ResultsPage
+    WaitResults, ResultsPage, WaitRound,
 ]
