@@ -11,7 +11,7 @@ SESSION_CONFIGS = [
         'num_demo_participants': 2,
         # ★アプリの実行順★
         'app_sequence': ['quiz', 'sender_receiver_game', 'survey'],
-        'treatment': 'NP', #CP or NP
+        'treatment': 'CP', #CP or NP
     },
 ]
 

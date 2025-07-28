@@ -137,12 +137,11 @@ class Explanation3(ExplainMixin):
 class Q4(MultiSelectMixin):
     question_num = 4
     form_model = 'player'
-    form_fields = [f'q4_opt{i}' for i in range(1, 4)]  # 3 個
-    correct_set = {1, 2, 3}
+    form_fields = [f'q4_opt{i}' for i in range(1, 3)]  # 3 個
+    correct_set = {1, 2}
     option_labels = [
         '追加報酬の換算には本番12ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
         '１ポイント＝10円のレートで追加報酬に換算される。',
-        '練習ラウンドの結果が追加報酬に換算されることはない。',
     ]
     explanations = {
     }

@@ -17,7 +17,7 @@ class C(BaseConstants):
     NAME_IN_URL       = 'sender_receiver_game'
     PLAYERS_PER_GROUP = 2
 
-    NUM_MAIN_ROUNDS   = 2
+    NUM_MAIN_ROUNDS   = 12
     PRACTICE_ROUNDS   = [1, 2]
     NUM_ROUNDS        = NUM_MAIN_ROUNDS + len(PRACTICE_ROUNDS)
 

@@ -109,7 +109,7 @@ input[type="radio"]:checked + .choice-button.blue {
 {% if player.round_number in [1, 2] %}
   <p style="color:red; font-weight:bold;">※これは練習ラウンドです。練習ラウンドの結果は報酬に影響を与えません。</p>
 {% endif %}
-<p>下の枠内には送信者が設計したメッセージプランと、それから計算される全体でのメッセージ送信確率が表示されています。</p>
+<p>下の２つの枠内には、送信者が設計した「メッセージプラン」と「全体でのメッセージ送信確率」が表示されています。</p>
 
 
 
@@ -141,8 +141,9 @@ input[type="radio"]:checked + .choice-button.blue {
     </div>
   </div>
 
-  <hr>
+</div>
 
+<div class="box-wrapper light">
     <h3 class="box-heading">全体でのメッセージ送信確率</h3>
   <input type="range" min="0" max="100" id="sliderTotal" class="color-slider disabled" disabled>
   <div class="distribution-container">
@@ -158,7 +159,7 @@ input[type="radio"]:checked + .choice-button.blue {
 
 </div>
 
-<p>送信者が設計したメッセージプランから送信されるメッセージが「<strong style="color:#ff6666">赤色</strong>」の場合と
+<p>メッセージプランから送信されるメッセージが「<strong style="color:#ff6666">赤色</strong>」の場合と
   「<strong style="color:#66ccff">青色</strong>」の場合それぞれについて、玉の色を推測してください。</p>
 
 <!-- 🔸行動選択（戦略法） -->

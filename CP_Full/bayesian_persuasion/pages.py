@@ -95,7 +95,7 @@ class MyWaitPage(WaitPage):
 
 class RoundSyncWaitPage(WaitPage):
     wait_for_all_groups=True
-    title_text,body_text="お待ちください","他のペアがゲームを終えるまで、しばらくお待ちください…"
+    title_text,body_text="お待ちください","他のペアが選択を終えるまで、しばらくお待ちください…"
 
 # ══════════ 結果ページ ══════════════════════════════
 # ① ──────────────────────────────────────────

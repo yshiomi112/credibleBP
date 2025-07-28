@@ -111,7 +111,4 @@ class Player(BasePlayer):
     q5_opt3 = models.BooleanField(
         label='１ポイント＝10円のレートで追加報酬に換算される。',
         widget=widgets.CheckboxInput, blank=True)
-    q5_opt4 = models.BooleanField(
-        label='練習ラウンドの結果が追加報酬に換算されることはない。',
-        widget=widgets.CheckboxInput, blank=True)
     q5_correct = models.BooleanField(initial=False)
