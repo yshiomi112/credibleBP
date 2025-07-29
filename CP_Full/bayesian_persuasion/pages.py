@@ -162,8 +162,7 @@ class ResultsPage(Page):
 class AfterResultsWait(WaitPage):
     wait_for_all_groups=True
     title_text,body_text="お待ちください","次のラウンドを待っています…"
-    def is_displayed(self):
-        return (self.round_number not in C.PRACTICE_ROUNDS) and (self.round_number!=C.NUM_ROUNDS)
+
 
 
 
@@ -174,6 +173,6 @@ page_sequence=[
     RolePractice,RoleMain,RoleIntroWait,
     SenderPage,WaitSender,
     ReceiverPage,WaitReceiver,
-    MyWaitPage,RoundSyncWaitPage, PracticeResults,
+    MyWaitPage, PracticeResults,
     ResultsPage,AfterResultsWait,
 ]
