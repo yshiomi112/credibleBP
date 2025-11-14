@@ -32,10 +32,10 @@ class Player(BasePlayer):
         label='コンピュータが引いた玉の色は、すぐに参加者に公開される。',
         widget=widgets.CheckboxInput, blank=True)
     q1_opt4 = models.BooleanField(
-        label='本番12ラウンド中、同じペアで課題を繰り返す。',
+        label='本番20ラウンド中、同じペアで課題を繰り返す。',
         widget=widgets.CheckboxInput, blank=True)
     q1_opt5 = models.BooleanField(
-        label='割り当てられた役割は、本番12ラウンド中変更されない。',
+        label='割り当てられた役割は、本番20ラウンド中変更されない。',
         widget=widgets.CheckboxInput, blank=True)
     q1_correct = models.BooleanField(initial=False)
 
@@ -103,7 +103,7 @@ class Player(BasePlayer):
     #  問5（選択肢 4 個）
     # ───────────────────────────────────────────
     q5_opt1 = models.BooleanField(
-        label='追加報酬の換算には本番12ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
+        label='追加報酬の換算には本番20ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
         widget=widgets.CheckboxInput, blank=True)
     q5_opt2 = models.BooleanField(
         label='受信者は２種類の獲得ポイントが両方とも追加報酬に換算される。',

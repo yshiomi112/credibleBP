@@ -1,0 +1,49 @@
+{% extends "global/Page.html" %}
+{% block title %}謝金の確認{% endblock %}
+
+{% block content %}
+<style>
+.results-box{background:#f9f9f9;border:1px solid #ccc;border-radius:14px;
+  padding:24px 30px;margin-top:20px;font-size:1.1em;line-height:1.8;}
+.label{font-weight:600;display:inline-block;width:200px;color:#333;}
+.value-box{display:inline-block;padding:8px 18px;font-size:1.6rem;font-weight:700;
+  min-width:110px;text-align:center;border-radius:10px;background:#f1f1f1;color:#333;}
+hr{border:none;border-top:1px solid #ccc;margin:28px 0;}
+</style>
+
+<p>本番ラウンドのうち 1 つがランダムに選ばれ、その結果が追加報酬になります。</p>
+
+<div class="results-box">
+  <p><span class="label">対象ラウンド：</span>
+     <span class="value-box">{{ round_label }}</span></p>
+
+<p><span class="label">獲得ポイント：</span>
+   <span class="value-box">{{ gp }}
+   </span></p>
+
+
+  <hr>
+
+<p><span class="label">
+      {% if is_sender %}追加報酬：{% else %}追加報酬：{% endif %}
+   </span>
+   <span class="value-box">
+     {% if is_sender %}
+       {{ money_additional }} 円
+     {% else %}
+       {{ money_additional }} 円
+     {% endif %}
+   </span></p>
+
+  <hr>
+
+  <p><span class="label">謝金：</span>
+     <span class="value-box">{{ total_money }} 円</span></p>
+</div>
+
+<p style="margin-top:20px;">
+  謝金支払いの準備が終わるまで、そのままお待ちください。<br>
+  本日は実験にご参加いただき、ありがとうございました。
+</p>
+{% endblock %}
+

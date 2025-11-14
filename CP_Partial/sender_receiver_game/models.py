@@ -12,7 +12,7 @@ def epsilon_from_treatment(t):
 class C(BaseConstants):
     NAME_IN_URL        = 'sender_receiver_game'
     PLAYERS_PER_GROUP  = 2
-    NUM_MAIN_ROUNDS    = 12           # ★本番ラウンド数をここで調整★
+    NUM_MAIN_ROUNDS    = 20           # ★本番ラウンド数をここで調整★
     PRACTICE_ROUNDS    = [1, 2]      # 練習ラウンド
     STATES   = ['Red', 'Blue']
     MESSAGES = ['r', 'b']

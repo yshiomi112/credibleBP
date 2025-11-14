@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────
-# pages.py  （更新版）
+# pages.py  （分岐ロジック追加版）
 # ─────────────────────────────────────────────
 from otree.api import *
 from .models import C, Subsession, Group, Player
@@ -15,12 +15,29 @@ class MultiSelectMixin(Page):
     explanations: dict                  #   〃  { idx : exp_str }（正解には含めない）
 
     def error_message(self, values):
-        selected = {i for i, f in enumerate(self.form_fields, 1) if values[f]}
+        # 参加者がチェックした選択肢（1-indexed）を集合にする
+        selected = {i for i, f in enumerate(self.form_fields, 1) if values.get(f)}
 
-        if (selected - self.correct_set):
+        # --- ケースC: 何も選んでいない -----------------
+        if not selected:
+            return '正しいと思う選択肢を選んでください。'
+
+        # --- ケースA: 誤った選択肢が含まれている --------
+        # wrong は「正解セットに含まれていないのに選んでしまっているもの」
+        wrong = selected - self.correct_set
+        if wrong:
             return '誤った選択肢が選択されています。実験説明を読み直し、もう一度回答して下さい。'
+
+        # --- ケースB: 今の選択は全部正解だが、まだ足りない
         if not self.correct_set.issubset(selected):
-            return '正しい選択肢を全て選んでください'
+            return (
+                '今選んでいる選択肢は全て正解です。'
+                'まだ正しい選択肢が残っているので、正しいと思うものを追加で選んでください。'
+            )
+
+        # --- 全て正解の場合はエラーなし ---------------
+        # （selected == correct_set のとき）
+        return None
 
     def before_next_page(self):
         selected = {i for i, f in enumerate(self.form_fields, 1)
@@ -33,7 +50,7 @@ class ExplainMixin(Page):
 
     question_num: int                  # サブクラスで設定
     option_labels: list                #   〃
-    explanations: dict                 #   〃
+    explanations: dict                #   〃
 
     def is_displayed(self):
         return getattr(self.player, f'q{self.question_num}_correct')
@@ -68,12 +85,12 @@ class Q1(MultiSelectMixin):
         '参加者は「送信者」か「受信者」の役割にランダムに割り当てられる。',
         'コンピュータは赤玉3個、青玉7個の中からランダムに1つの玉を引く。',
         'コンピュータが引いた玉の色は、すぐに参加者に公開される。',
-        '本番12ラウンド中、同じペアで課題を繰り返す。',
-        '割り当てられた役割は、本番12ラウンド中変更されない。',
+        '本番20ラウンド中、同じペアで課題を繰り返す。',
+        '割り当てられた役割は、本番20ラウンド中変更されない。',
     ]
     explanations = {
         3: '送信者、受信者ともにそのラウンドの結果が公開されるまで、玉の色を知ることはできません。',
-        4: '毎ラウンドごとに、相手がランダムに変わる仕組みになっています。',
+        4: '毎ラウンドごとに、相手がランダムに変わる仕組みになっています.',
     }
 
 class Explanation1(ExplainMixin):
@@ -132,15 +149,15 @@ class Explanation3(ExplainMixin):
 
 
 # ─────────────────────────────────────────────
-#  問4  ★変更★（選択肢 3 個）
+#  問4  ★変更★（選択肢 3 個 → 実際は2フィールド）
 # ─────────────────────────────────────────────
 class Q4(MultiSelectMixin):
     question_num = 4
     form_model = 'player'
-    form_fields = [f'q4_opt{i}' for i in range(1, 3)]  # 3 個
+    form_fields = [f'q4_opt{i}' for i in range(1, 3)]  # models.pyでは q4_opt1, q4_opt2
     correct_set = {1, 2}
     option_labels = [
-        '追加報酬の換算には本番12ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
+        '追加報酬の換算には本番20ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
         '１ポイント＝10円のレートで追加報酬に換算される。',
     ]
     explanations = {

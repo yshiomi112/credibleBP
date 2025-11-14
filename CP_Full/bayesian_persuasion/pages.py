@@ -10,8 +10,23 @@ def round_label(player):
     idx = player.round_number - len(C.PRACTICE_ROUNDS)
     return f"ラウンド {idx}"
 
+# 1) Next ボタン表示条件を変更
 def show_next_button(r):
-    return (r != max(C.PRACTICE_ROUNDS)) and (r != C.NUM_ROUNDS)
+    return True   # ← 最終ラウンドでも Next を出す
+
+
+
+
+class WaitQuiz(WaitPage):
+    wait_for_all_groups = True
+    title_text = "しばらくお待ちください"
+    body_text = "他の参加者が回答を終えるまで、しばらくお待ちください。"
+
+    def is_displayed(self):
+        # 「quiz → bayesian_persuasion」に入ってきた直後（練習ラウンド1）だけ待ち合わせ
+        return self.round_number == C.PRACTICE_ROUNDS[0]
+
+
 
 # ══════════ 役割確認 (練習 / 本番前) ═════════════════
 class RolePractice(Page):
@@ -34,8 +49,9 @@ class RoleIntroWait(WaitPage):
     wait_for_all_groups=True
     title_text,body_text="しばらくお待ちください","他の参加者をお待ちください"
     def is_displayed(self):
-        first_main=min(set(range(1,C.NUM_ROUNDS+1))-set(C.PRACTICE_ROUNDS))
-        return self.round_number in (*C.PRACTICE_ROUNDS,first_main)
+        first_main = min(set(range(1, C.NUM_ROUNDS+1)) - set(C.PRACTICE_ROUNDS))
+        # 例: 練習2と本番開始前だけ待つ
+        return self.round_number in (C.PRACTICE_ROUNDS[1], first_main)
 
 # ══════════ Sender ══════════════════════════════════
 class SenderPage(Page):
@@ -125,7 +141,7 @@ class PracticeResults(Page):
             main_done=False,  # 練習ラウンドでは本番終了ではない
         )
 
-    # ボタン制御（練習2では None を返してボタン非表示）
+
     def get_form_fields(self):
         return [] if not show_next_button(self.round_number) else None
 
@@ -159,9 +175,23 @@ class ResultsPage(Page):
     def get_form_fields(self):
         return [] if not show_next_button(self.round_number) else None
 
+# 2) 既存 AfterResultsWait は「最終ラウンド以外」に限定
 class AfterResultsWait(WaitPage):
-    wait_for_all_groups=True
-    title_text,body_text="お待ちください","次のラウンドを待っています…"
+    wait_for_all_groups = True
+    title_text, body_text = "お待ちください", "次のラウンドを待っています…"
+
+    def is_displayed(self):
+        return self.round_number != C.NUM_ROUNDS
+
+
+# 3) 最終ラウンド専用の待機ページ
+class AfterMainWait(WaitPage):
+    wait_for_all_groups = True
+    title_text  = "お待ちください"
+    body_text   = "全員が結果を確認するまで、しばらくお待ちください。"
+
+    def is_displayed(self):
+        return self.round_number == C.NUM_ROUNDS
 
 
 
@@ -170,9 +200,11 @@ class AfterResultsWait(WaitPage):
 
 # ══════════ ページシーケンス ═════════════════════════
 page_sequence=[
+    WaitQuiz,
     RolePractice,RoleMain,RoleIntroWait,
     SenderPage,WaitSender,
     ReceiverPage,WaitReceiver,
     MyWaitPage, PracticeResults,
     ResultsPage,AfterResultsWait,
+    AfterMainWait,
 ]

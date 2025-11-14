@@ -5,14 +5,14 @@ SESSION_CONFIGS = [
         'name': 'bp_test',
         'display_name': "Bayesian Persuasion Full",
         'num_demo_participants': 2,
-        'app_sequence': ['quiz', 'bayesian_persuasion', 'survey'],
+        'app_sequence': ['quiz', 'bayesian_persuasion', 'preference' , 'survey'],
         'treatment': 'CF',  # 'CF' または 'NF'
     },
 ]
 
 SESSION_CONFIG_DEFAULTS = {
     'real_world_currency_per_point': 10,
-    'participation_fee': 1500,
+    'participation_fee': 500,
     'doc': "",
 }
 

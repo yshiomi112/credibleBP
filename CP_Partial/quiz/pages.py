@@ -13,12 +13,27 @@ class MultiSelectMixin(Page):
     explanations: dict                 #   〃  { idx : exp_str }（正解には含めない）
 
     def error_message(self, values):
-        selected = {i for i, f in enumerate(self.form_fields, 1) if values[f]}
+        # 参加者が現在チェックしている選択肢（1始まりの番号のセット）
+        selected = {i for i, f in enumerate(self.form_fields, 1) if values.get(f)}
 
-        if (selected - self.correct_set):
+        # ケースC: まだ何も選んでいない
+        if not selected:
+            return '正しいと思う選択肢を選んでください。'
+
+        # ケースA: 誤った選択肢が含まれている
+        wrong = selected - self.correct_set
+        if wrong:
             return '誤った選択肢が選択されています。実験説明を読み直し、もう一度回答して下さい。'
+
+        # ケースB: 今の選択はすべて正解だが、まだ正しい選択肢を選び切れていない
         if not self.correct_set.issubset(selected):
-            return '正しい選択肢を全て選んでください'
+            return (
+                '今選んでいる選択肢は全て正解です。'
+                'まだ正しい選択肢が残っているので、正しいと思うものを追加で選んでください。'
+            )
+
+        # すべて正解（selected == correct_set）の場合はエラーなし
+        return None
 
     def before_next_page(self):
         selected = {i for i, f in enumerate(self.form_fields, 1)
@@ -66,8 +81,8 @@ class Q1(MultiSelectMixin):
         '参加者は「送信者」か「受信者」の役割にランダムに割り当てられる。',
         'コンピュータは赤玉3個、青玉7個の中からランダムに1つの玉を引く。',
         'コンピュータが引いた玉の色は、すぐに参加者に公開される。',
-        '本番12ラウンド中、同じペアで課題を繰り返す。',
-        '割り当てられた役割は、本番12ラウンド中変更されない。',
+        '本番20ラウンド中、同じペアで課題を繰り返す。',
+        '割り当てられた役割は、本番20ラウンド中変更されない。',
     ]
     explanations = {
         3: '送信者、受信者ともにそのラウンドの結果が公開されるまで、玉の色を知ることはできません。',
@@ -170,7 +185,7 @@ class Q5(MultiSelectMixin):
     form_fields = [f'q5_opt{i}' for i in range(1, 4)]
     correct_set = {1, 3}
     option_labels = [
-        '追加報酬の換算には本番12ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
+        '追加報酬の換算には本番20ラウンドの中からランダムに選ばれた１ラウンドの結果が用いられる。',
         '受信者は２種類の獲得ポイントが両方とも追加報酬に換算される。',
         '１ポイント＝10円のレートで追加報酬に換算される。',
     ]
@@ -186,6 +201,14 @@ class Explanation5(ExplainMixin):
 
 
 # ─────────────────────────────────────────────
+#  全員が Explanation5 に到達するまで待つ WaitPage
+# ─────────────────────────────────────────────
+class WaitQuiz(WaitPage):
+    wait_for_all_groups = True
+    body_text = '他の参加者が確認クイズを終えるまでお待ちください。'
+
+
+# ─────────────────────────────────────────────
 #  ページ遷移
 # ─────────────────────────────────────────────
 page_sequence = [
@@ -194,5 +217,6 @@ page_sequence = [
     Q3, Explanation3,
     Q4, Explanation4,
     Q5, Explanation5,
+    WaitQuiz,
 ]
 

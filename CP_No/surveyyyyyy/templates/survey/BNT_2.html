@@ -1,0 +1,91 @@
+{% extends "global/Page.html" %}
+{% block title %}質問{% if is_sender %}3/6{% else %}2/5{% endif %}{% endblock %}
+
+{% block content %}
+
+
+<div id="countdown-timer-box">
+  ⌛️ このページでの残り時間 <strong id="time-left">1:00</strong>
+</div>
+
+<div id="timeout-warning">
+  ⏰ 時間が経過しました。なるべく早く選択してください。
+</div>
+
+
+
+<div class="box-wrapper">
+<p>
+  ある森で取れるキノコは、20 % が赤色、50 % が茶色、30 % が白色です。<br>
+  赤色キノコのうち 20 % に毒性があり、それ以外のキノコでは 5 % に毒性があります。<br>
+  では、この森の毒キノコが 赤色である可能性は何 % でしょうか？<br>
+  0〜100 の整数で答えてください。
+</p>
+
+<div style="display:inline-flex; align-items:center; gap:4px;">
+  {{ form.bnt2_answer }}
+  <span>%</span>
+</div>
+</div>
+
+{{ next_button }}
+
+
+
+
+<script>
+// タイマー処理
+let secondsLeft = 90;
+function updateTimeDisplay() {
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+  document.getElementById('time-left').textContent = timeStr;
+}
+updateTimeDisplay();
+const timer = setInterval(() => {
+  secondsLeft -= 1;
+  updateTimeDisplay();
+  if (secondsLeft <= 0) {
+    clearInterval(timer);
+    document.getElementById("timeout-warning").style.display = "block";
+  }
+}, 1000);
+</script>
+
+
+
+
+
+
+<style>
+/* タイマー表示 */
+#countdown-timer-box {
+  background-color: #fff4cc;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #444;
+  text-align: center;
+  margin: 20px 0;
+}
+#timeout-warning {
+  display: none;
+  background: #ffe0e0;       /* ← 現在の赤っぽい背景色を維持 */
+  border-radius: 10px;       /* ← 丸角を追加 */
+  padding: 10px 20px;
+  margin: 20px 0;
+  font-weight: bold;
+  text-align: center;
+  color: #800000;            /* 任意：やや濃い赤字にして強調 */
+}
+.box-wrapper {
+  background-color: #fdfdfd;
+  border: 1px solid #888;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+</style>
+{% endblock %}

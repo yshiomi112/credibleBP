@@ -3,11 +3,14 @@ import random
 from .models import C
 from sender_receiver_game.models import C as GameC   # PRACTICE_ROUNDS を参照
 
+
 class Survey(Page):
-    form_model = 'player'
+    form_model, form_fields = 'player', []
+
     def vars_for_template(self):
         is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
         return dict(is_sender=is_sender)
+
 
 class WTP(Page):
     form_model  = 'player'
@@ -16,19 +19,18 @@ class WTP(Page):
     def vars_for_template(self):
         is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
         return dict(
+            treatment=self.session.config.get('treatment'),
             is_sender=is_sender,
-            treatment=self.session.config.get('treatment'),  # ここを追加
         )
 
     # ★ Sender に割り当てられた参加者しか表示しない
     def is_displayed(self):
+        # sender_receiver_game の本番準備中に participant.role_fixed がセット済み
         return getattr(self.participant, 'role_fixed', None) == 'sender'
-
 
     def error_message(self, values):
         if values.get('WTP') is None:
             return "0〜200 の整数で回答してください。"
-
 
 
 class BNT_1(Page):
@@ -38,6 +40,7 @@ class BNT_1(Page):
     def vars_for_template(self):
         is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
         return dict(is_sender=is_sender)
+
     def error_message(self, values):
         if values.get('bnt_answer') is None:
             return "0〜100 の整数で回答してください。"
@@ -45,10 +48,11 @@ class BNT_1(Page):
     def before_next_page(self):
         self.player.grade_bnt()
 
-# ────────── BNT 2 ページ ──────────
+
 class BNT_2(Page):
     form_model  = 'player'
     form_fields = ['bnt2_answer']
+
     def vars_for_template(self):
         is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
         return dict(is_sender=is_sender)
@@ -61,136 +65,6 @@ class BNT_2(Page):
         self.player.grade_bnt2()
 
 
-
-class Inequity1(Page):
-    #timeout_seconds = 120
-    form_model  = 'player'
-    form_fields = ['ineq_q1','ineq_q2','ineq_q3','ineq_q4','ineq_q5']
-
-    def vars_for_template(self):
-        is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
-        # 左＝平等 (1000/1000)、右＝不平等 (800–1200/1300)
-        return dict(
-            is_sender=is_sender,
-            pairs=[
-            (1, '自分 1000円 / 相手 1000円', '自分 800円  / 相手 1300円'),
-            (2, '自分 1000円 / 相手 1000円', '自分 900円  / 相手 1300円'),
-            (3, '自分 1000円 / 相手 1000円', '自分 1000円 / 相手 1300円'),
-            (4, '自分 1000円 / 相手 1000円', '自分 1100円 / 相手 1300円'),
-            (5, '自分 1000円 / 相手 1000円', '自分 1200円 / 相手 1300円'),
-        ])
-    def before_next_page(self):
-        if self.timeout_happened:
-            # ここで「デフォルト値」をセット
-            self.player.ineq_q1 = 'equal'
-            self.player.ineq_q2 = 'equal'
-            self.player.ineq_q3 = 'equal'
-            self.player.ineq_q4 = 'equal'
-            self.player.ineq_q5 = 'equal'
-
-        answers = [
-            self.player.ineq_q1,
-            self.player.ineq_q2,
-            self.player.ineq_q3,
-            self.player.ineq_q4,
-            self.player.ineq_q5,
-        ]
-        try:
-            sp = answers.index('unequal') + 1   # 最初に左を選んだ行
-        except ValueError:
-            sp = 0                              # すべて右
-        self.player.ineq_switch = sp
-
-class Inequity2(Page):
-    #timeout_seconds = 120
-    form_model = 'player'
-    form_fields = ['ineq2_q1', 'ineq2_q2', 'ineq2_q3', 'ineq2_q4', 'ineq2_q5']
-
-    def vars_for_template(self):
-        is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
-        return dict(
-            is_sender=is_sender,
-            pairs=[
-            (1, '自分 1000円 / 相手 1000円', '自分 800円  / 相手 700円'),
-            (2, '自分 1000円 / 相手 1000円', '自分 900円  / 相手 700円'),
-            (3, '自分 1000円 / 相手 1000円', '自分 1000円 / 相手 700円'),
-            (4, '自分 1000円 / 相手 1000円', '自分 1100円 / 相手 700円'),
-            (5, '自分 1000円 / 相手 1000円', '自分 1200円 / 相手 700円'),
-        ])
-
-    def before_next_page(self):
-        if self.timeout_happened:
-            # ここで「デフォルト値」をセット
-            self.player.ineq2_q1 = 'equal'
-            self.player.ineq2_q2 = 'equal'
-            self.player.ineq2_q3 = 'equal'
-            self.player.ineq2_q4 = 'equal'
-            self.player.ineq2_q5 = 'equal'
-
-        answers = [
-            self.player.ineq2_q1,
-            self.player.ineq2_q2,
-            self.player.ineq2_q3,
-            self.player.ineq2_q4,
-            self.player.ineq2_q5,
-        ]
-        try:
-            sp = answers.index('unequal') + 1   # 最初に左を選んだ行
-        except ValueError:
-            sp = 0                              # すべて右
-        self.player.ineq2_switch = sp
-
-
-
-class Risk(Page):
-    #timeout_seconds = 120
-    form_model  = 'player'
-    form_fields = [f'risk_q{i}' for i in range(1,11)]
-
-    def vars_for_template(self):
-        is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
-        # (行番号, 左くじ, 右くじ)
-        pairs = [
-            (1,  '10%で200円, 90%で160円',  '10%で385円, 90%で10円'),
-            (2,  '20%で200円, 80%で160円',  '20%で385円, 80%で10円'),
-            (3,  '30%で200円, 70%で160円',  '30%で385円, 70%で10円'),
-            (4,  '40%で200円, 60%で160円',  '40%で385円, 60%で10円'),
-            (5,  '50%で200円, 50%で160円',  '50%で385円, 50%で10円'),
-            (6,  '60%で200円, 40%で160円',  '60%で385円, 40%で10円'),
-            (7,  '70%で200円, 30%で160円',  '70%で385円, 30%で10円'),
-            (8,  '80%で200円, 20%で160円',  '80%で385円, 20%で10円'),
-            (9,  '90%で200円, 10%で160円',  '90%で385円, 10%で10円'),
-            (10, '100%で200円, 0%で160円', '100%で385円, 0%で10円'),
-        ]
-        return dict(
-            is_sender=is_sender,
-            pairs=pairs)
-
-    def before_next_page(self):
-
-        if self.timeout_happened:
-            self.player.risk_q1 = 'left'
-            self.player.risk_q2 = 'left'
-            self.player.risk_q3 = 'left'
-            self.player.risk_q4 = 'left'
-            self.player.risk_q5 = 'left'
-            self.player.risk_q6 = 'left'
-            self.player.risk_q7 = 'left'
-            self.player.risk_q8 = 'left'
-            self.player.risk_q9 = 'left'
-            self.player.risk_q10 = 'left'
-
-        answers = [getattr(self.player, f'risk_q{i}') for i in range(1,11)]
-        # 最初に right が出た位置＋1 がスイッチポイント
-        try:
-            sp = answers.index('right') + 1
-        except ValueError:
-            sp = 11                      # 全部 left の場合
-        self.player.risk_switch = sp
-
-
-
-
 class FinalPayoffPage(Page):
     # 明示的にテンプレートを指定
     template_name = "survey/templates/survey/FinalPayoffPage.html"
@@ -198,31 +72,60 @@ class FinalPayoffPage(Page):
 
     def vars_for_template(self):
         is_sender = getattr(self.participant, 'role_fixed', None) == 'sender'
-        pr           = self.participant.vars['paying_round']
-        game_pts_num = self.participant.vars.get(f'payoff_r{pr}', 0)   # ← 数値
-        bonus_pts_num= self.participant.vars.get('lying_bonus', 0) if is_sender else 0
-        total_pts = game_pts_num + bonus_pts_num
 
-        rate  = self.session.config.get('real_world_currency_per_point', 1.0)
-        base  = self.session.config.get('participation_fee', 0.0)
-        money_add = int(total_pts * rate)
-        money_total = int(base + money_add)
+        # 実験パート1（ゲーム）の支払ラウンド
+        pr = self.participant.vars['paying_round']
+        game_pts_num = self.participant.vars.get(f'payoff_r{pr}', 0)  # 数値（ポイント）
 
+        # 実験パート2（preference）の情報（PrefIncentiveComputeで保存済み）
+        pv = self.participant.vars
+        pref_group   = pv.get('pref_group')                 # "Ineq" / "Risk" / None
+        pref_q       = pv.get('pref_question')              # 1/2/3 / None
+        pref_idx     = pv.get('pref_index')                 # int / None
+        pref_role    = pv.get('pref_role')                  # "自分"/"相手"/None
+        pref_amount  = int(pv.get('pref_amount_yen', 0))    # 円
+
+        # ラベルは保存済みがあればそれを、なければフォールバック辞書で決める
+        # 質問1 -> 質問1a
+        # 質問2 -> 質問1b
+        # 質問3 -> 質問2
+        pref_question_label = pv.get('pref_question_label') or {
+            1: '質問1a',
+            2: '質問1b',
+            3: '質問2',
+        }.get(pref_q, '—')
+
+        pref_show_role = bool(pv.get('pref_show_role', (pref_q in (1, 2) and pref_role)))
+
+        # 換金
+        rate = self.session.config.get('real_world_currency_per_point', 1.0)
+        base = self.session.config.get('participation_fee', 0.0)
+
+        money_add   = int(game_pts_num * rate)                  # 実験パート1（ゲーム）の換金額（円）
+        money_total = int(base + money_add + pref_amount)       # 参加費 + ゲーム換金 + preference円
+
+        # 「ラウンド X」表記（練習ラウンド分を引く）
         label = f"ラウンド {pr - len(GameC.PRACTICE_ROUNDS)}"
 
-
-        # Payments 画面と整合
-        self.participant.payoff = total_pts
+        # 重要：participant.payoff は PrefIncentiveCompute で最終確定済み。ここでは上書きしない。
 
         return dict(
             is_sender          = is_sender,
             round_label        = label,
-            gp                 = game_pts_num,     # ← 新しいキー
-            bp                 = bonus_pts_num,    # ← 新しいキー
+            gp                 = game_pts_num,      # ゲームポイント
             rate               = rate,
-            money_additional   = money_add,
             participation_fee  = int(base),
+            money_additional   = money_add,         # ゲーム由来の追加報酬（円）
             total_money        = money_total,
+
+            # ▼ preference 表示用
+            pref_group          = pref_group,
+            pref_question       = pref_q,
+            pref_index          = pref_idx,
+            pref_role           = pref_role,
+            pref_amount_yen     = pref_amount,
+            pref_question_label = pref_question_label,
+            pref_show_role      = pref_show_role,
         )
 
 
@@ -231,8 +134,5 @@ page_sequence = [
     Survey,
     WTP,
     BNT_1, BNT_2,
-    Inequity1,
-    Inequity2,
-    Risk,
     FinalPayoffPage,
 ]

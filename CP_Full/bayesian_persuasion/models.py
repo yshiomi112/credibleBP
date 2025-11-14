@@ -10,7 +10,7 @@ def epsilon_from_treatment(t):
 class C(BaseConstants):
     NAME_IN_URL = 'bayesian_persuasion'
     PLAYERS_PER_GROUP = 2                       # Sender + Receiver
-    NUM_ROUNDS = 14                             # 練習 2 + 本番 2（拡張可）
+    NUM_ROUNDS = 22                             # 練習 2 + 本番 2（拡張可）
     PRACTICE_ROUNDS = [1, 2]                    # 練習ラウンド番号
     STATES   = ['Red', 'Blue']
     MESSAGES = ['r', 'b']

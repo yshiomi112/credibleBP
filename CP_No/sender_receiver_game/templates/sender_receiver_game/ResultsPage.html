@@ -101,25 +101,28 @@ hr {
 
 </div>
 
-<p><p>
 
-{% if show_next %}
- <p>結果を確認したら「次へ」ボタンを押してください。</p>
-  <form method="post">
-    <button class="btn btn-primary">次へ</button>
-  </form>
-{% endif %}
 
+
+
+<p></p>
 
 {% if practice_done %}
   <p>
-    練習ラウンドは以上です。本番ラウンド開始までお待ちください。
+    練習ラウンドは以上です。実験者の指示があるまで<br>
+    <span style="color:red; font-weight:bold;">「次へ」ボタンは押さないでください。</span>
   </p>
 {% elif main_done %}
   <p>
-    実験パート１は以上です。実験実施者の指示があるまでお待ちください。
+    実験パート１は以上です。実験者の指示があるまで<br>
+    <span style="color:red; font-weight:bold;">「次へ」ボタンは押さないでください。</span>
   </p>
+{% else %}
+  <p>結果を確認したら「次へ」ボタンを押してください。</p>
 {% endif %}
 
+<form method="post">
+  <button class="btn btn-primary">次へ</button>
+</form>
 
 {% endblock %}

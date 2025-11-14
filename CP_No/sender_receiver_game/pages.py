@@ -155,13 +155,38 @@ class ResultsPage(Page):
         return [] if not show_next_button(self.round_number) else None
 
 
+
+class WaitPracticeEnd(WaitPage):
+    wait_for_all_groups = True
+    title_text = "お待ちください"
+    body_text = "他の参加者が練習ラウンドを終えるまでお待ちください。"
+
+    def is_displayed(self):
+        return self.round_number == max(C.PRACTICE_ROUNDS)
+
+
+class WaitMainEnd(WaitPage):
+    wait_for_all_groups = True
+    title_text = "お待ちください"
+    body_text = "他の参加者が実験パート1を終えるまでお待ちください。"
+
+    def is_displayed(self):
+        return self.round_number == C.NUM_ROUNDS
+
+
 class WaitRound(WaitPage):
     wait_for_all_groups = True
+
+    def is_displayed(self):
+        # 練習最終ラウンドと本番最終ラウンド以外のラウンドでのみ表示
+        return self.round_number not in (max(C.PRACTICE_ROUNDS), C.NUM_ROUNDS)
+
 
 # ────────── ページ遷移順 ──────────
 page_sequence = [
     RolePractice, RoleMain, RoleIntroWait,
     SenderPage, WaitSender,
     ReceiverPage, ReceiverPredict,
-    WaitResults, ResultsPage, WaitRound,
+    WaitResults, ResultsPage,
+    WaitPracticeEnd, WaitMainEnd, WaitRound,
 ]

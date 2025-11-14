@@ -10,7 +10,7 @@ SESSION_CONFIGS = [
         'display_name': "Bayesian Persuasion Experiment",
         'num_demo_participants': 2,
         # ★アプリの実行順★
-        'app_sequence': ['quiz', 'sender_receiver_game', 'survey'],
+        'app_sequence': ['quiz', 'sender_receiver_game', 'preference' ,'survey'],
         'treatment': 'CN', #CN or NN
     },
 ]
@@ -20,7 +20,7 @@ SESSION_CONFIGS = [
 # ───────────────────────────────────────────
 SESSION_CONFIG_DEFAULTS = {
     'real_world_currency_per_point': 10,   # 1 点 = 10 円
-    'participation_fee': 1500,             # 参加報酬（定額）
+    'participation_fee': 500,             # 参加報酬（定額）
     'doc': "",                             # ドキュメント欄（任意）
 }
 
